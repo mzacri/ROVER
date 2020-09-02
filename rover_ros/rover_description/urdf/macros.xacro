@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<robot name="rover"  xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="cylinder_inertia" params="m r h">
+    <inertia  ixx="${m*(3*r*r+h*h)/12}" ixy = "0" ixz = "0"
+      iyy="${m*(3*r*r+h*h)/12}" iyz = "0"
+      izz="${m*r*r/2}"/>
+  </xacro:macro>
+
+  <xacro:macro name="box_inertia" params="m w d h">
+    <inertia  ixx="${m*(h*h+d*d)/12}" ixy = "0" ixz = "0"
+              iyy="${m*(w*w+d*d)/12}" iyz = "0"
+              izz="${m*(w*w+h*h)/12}"/>
+  </xacro:macro>
+
+  <xacro:macro name="sphere_inertia" params="m r">
+    <inertia  ixx="${2*m*r*r/5}" ixy = "0" ixz = "0"
+      iyy="${2*m*r*r/5}" iyz = "0"
+      izz="${2*m*r*r/5}"
+    />
+  </xacro:macro>
+
+
+  <!-- ******* WHEELS ******* -->
+  <xacro:macro name="wheel" params="prefix tY tX">
+
+    <link name="${prefix}_wheel_link">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 ${PI/2} ${PI/2}" />
+        <geometry>
+          <cylinder length="${wheelWidth}" radius="${wheelRadius}"/>
+        </geometry>
+      </collision>
+
+      <visual>
+        <origin xyz="0 0 0" rpy="0 ${PI/2} ${PI/2}" />
+        <geometry> 
+          <cylinder length="${wheelWidth}" radius="${wheelRadius}"/>
+        </geometry>
+        <material name="LightGrey" />
+      </visual>
+
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 ${PI/2} ${PI/2}" />
+        <mass value="${wheelMass}"/>
+        <cylinder_inertia m="${wheelMass}" r="${wheelRadius}" h="${wheelWidth}"/>
+      </inertial>
+    </link>
+
+
+    <joint name="${prefix}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${prefix}_wheel_link"/>
+      <origin xyz="${tX} ${tY*chassisLength/2} ${wheelRadius}" rpy="0 0 0" />
+      <axis xyz="0 1 0" rpy="0 0 0"/>
+    </joint>
+
+
+    <transmission name="${prefix}_wheel_trans" type="SimpleTransmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}_wheel_joint">
+        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}_wheel_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <gazebo reference="${prefix}_wheel_link">
+      <kp value="${kp}"/>
+      <kd value="${kd}"/>
+      <mu1 value="${mu1}"/>
+      <mu2 value="${mu2}"/>
+      <fdir1 value="0 1 0"/>
+      <material>Gazebo/Black</material>
+    </gazebo>
+  </xacro:macro>
+
+
+  <!-- ******* CASTER (roue folle) ******* -->
+
+  <xacro:macro name="caster" params="prefix tY tX">
+
+    <link name="${prefix}_caster_link">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <sphere radius="0.085"/>
+        </geometry>
+      </collision>
+
+    </link>
+
+    <joint name="${prefix}_caster_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="${prefix}_caster_link"/>
+      <origin xyz="${tX} ${tY*chassisLength/2} 0.085" rpy="0 0 0" />
+    </joint>
+
+    <gazebo reference="${prefix}_caster_link">
+      <kp value="${kp}"/>
+      <kd value="${kd}"/>
+      <mu1 value="0.0"/>
+      <mu2 value="0.0"/>
+      <fdir1 value="1 0 0"/>
+      <material>Gazebo/Black</material>
+    </gazebo>
+  </xacro:macro>
+
+</robot>

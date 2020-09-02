@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Decide if we are launching simulation or real robot -->
+    <arg name="simu" default="false"/>	
+    <arg name="rover_odom" default="true"/>	
+    <!-- Launch the URDF for rover -->
+    <include file="$(find rover_description)/launch/rover_description.launch"/>
+
+<!-- IF SIMULATED ROBOT, THEN THIS BLOCK IS LAUNCHED -->
+<group if="$(arg simu)">
+    <!-- load empty world (quelques arguments) -->
+    <arg name="world" default="worlds/empty.world"/> <!-- Note: the world_name is with respect to GAZEBO_RESOURCE_PATH environmental variable -->
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rover_description)/launch/config.rviz"/>
+
+    <include file="$(find rover_gazebo)/launch/empty_world.launch">
+        <arg name="gui" value="true"/>
+        <arg name="verbose" value="true" />
+    </include>
+
+    <!-- Initial pose for the rover -->
+    <arg name="x" default="0.0"/> <!-- [m], positive to the North -->
+    <arg name="y" default="0.0"/> <!-- [m], negative to the East -->
+    <arg name="z" default="0.0"/> <!-- [m], positive Up -->
+    <arg name="roll" default="0"/> <!-- [rad] -->
+    <arg name="pitch" default="0"/> <!-- [rad] -->
+    <arg name="yaw" default="0"/> <!-- [rad], negative clockwise -->
+
+    <node name="spawn_rover" pkg="gazebo_ros" type="spawn_model"
+     args="-param robot_description
+           -urdf
+           -x $(arg x)
+           -y $(arg y)
+           -z $(arg z)
+           -R $(arg roll)
+           -P $(arg pitch)
+           -Y $(arg yaw)
+           -model rover"
+     respawn="false" output="screen">
+    </node>
+
+    <node pkg="interface_ackermann" type="interface_ackermann_node" name="interface_ackermann"/>
+    
+    <!-- bayes filtering -->
+    <node pkg="recursive_bayesian_filter_ros" type="recursive_bayesian_filter_ros_node" name="bayes_ros"  output="screen">
+        <param name="vehicule_type" value="ackermann"/>
+        <param name="filter_type" value="ekf"/>
+        <param name="lateral_track" value="0.3"/>
+        <param name="longitudinal_track" value="0.390444"/>
+        <param name="publish_tf" value="True"/>
+        <remap from="measure_input" to="/state_measure_odom"/>
+    </node>
+
+
+</group>
+
+<!-- IF REAL ROBOT, THEN THIS BLOCK IS LAUNCHED -->
+<group unless="$(arg simu)">
+
+<group if="$(arg rover_odom)">
+    <!-- Rover node -->
+    <node name="rover_node" pkg="rover_node" type="rover_node_odom.py" output="screen">
+        <rosparam command="load" file="$(find rover_node)/config/config.yaml"/>
+	<remap from="rover_odom" to="/odom"/>
+    </node>
+
+</group>
+
+<group unless="$(arg rover_odom)">
+    <!-- Rover node -->
+    <node name="rover_node" pkg="rover_node" type="rover_node_exec.py" output="screen">
+        <rosparam command="load" file="$(find rover_node)/config/config.yaml"/>
+	<remap from="rover_state" to="/state_measure_odom"/>
+    </node>
+    <!-- bayes filtering -->
+    <node pkg="recursive_bayesian_filter_ros" type="recursive_bayesian_filter_ros_node" name="bayes_ros"  output="screen">
+        <param name="vehicule_type" value="ackermann"/>
+        <param name="filter_type" value="ekf"/>
+        <param name="lateral_track" value="0.3"/>
+        <param name="longitudinal_track" value="0.390444"/>
+        <param name="publish_tf" value="True"/>
+        <remap from="measure_input" to="/state_measure_odom"/>
+    </node>
+
+</group>
+
+    <!-- Camera node -->
+    <include file="$(find raspicam_node)/launch/camerav2_640x480.launch" >
+        <arg name="enable_raw"  value="true"/>
+    </include>
+
+    <!-- Apriltag node -->
+    <include file="$(find apriltag_ros)/launch/continuous_detection.launch" >
+        <arg name="camera_name"  value="raspicam_node"/>
+	<arg name="image_topic"  value="/image_raw"/>
+    </include>
+     
+
+</group>
+
+  
+</launch>

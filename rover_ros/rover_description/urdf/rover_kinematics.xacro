@@ -1,0 +1,416 @@
+<?xml version="1.0"?>
+<robot name="rover" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="mu1r" value="0.0"/>
+  <xacro:property name="mu2r" value="0.0"/>
+  <xacro:property name="slipr" value="0.0"/>
+  <xacro:property name="mu1f" value="0.0"/>
+  <xacro:property name="mu2f" value="0.0"/>
+  <xacro:property name="kpr" value="1e9"/>
+  <xacro:property name="kdr" value="1000"/>
+
+  <xacro:property name="kpf" value="1e9"/>  <!--f comme front-->
+  <xacro:property name="kdf" value="1000"/>
+
+
+  <xacro:property name="steering_effort" value="1e9"/>
+
+  <xacro:property name="PI" value="3.1415926535897931"/>
+  <xacro:property name="chassisMass" value="5"/> <!-- kg -->
+  <xacro:property name="chassisLength" value="0.45" /> <!-- m -->
+  <xacro:property name="chassisWidth" value="0.3" /> <!-- m -->
+  <xacro:property name="chassisHeight" value="0.17" /> <!-- m -->
+
+  <xacro:property name="wheelJointHeight" value="0.07" /> <!-- m -->
+  <xacro:property name="steeringMass" value="0.1"/>
+
+  <xacro:property name="wheelWidth" value="0.05588"/>
+  <xacro:property name="wheelRadius" value="0.0635"/>
+  <xacro:property name="wheelMass" value="0.1"/>
+
+  <xacro:include filename="$(find rover_description)/urdf/macros.xacro"/>
+  <xacro:include filename="$(find rover_description)/urdf/materials.xacro"/>
+
+    <!-- BODY -->
+    <link name="base_link">
+        <visual name="visual">
+          <origin rpy="-1.5708 0 3.1416" xyz="0.19 0.392 0.052"/>
+          <geometry>
+            <mesh filename="package://rover_description/meshes/ErleRover_chassis.STL" scale="0.0011 0.0011 0.0011"/>
+          </geometry>
+          <material name="LightBlackish" />
+        </visual>
+
+      <collision>
+        <origin xyz="${chassisLength/2} 0 ${chassisHeight/2}"/>
+        <geometry>
+          <box size="${chassisLength} ${chassisWidth} ${chassisHeight}"/>
+        </geometry>
+      </collision>
+<!--      <collision name="chassis_bottom">
+        <origin rpy="0 0 0" xyz="chassis 0.0 0.067"/>
+        <geometry>
+          <box size="0.40 0.1 0.05"/>
+        </geometry>
+      </collision>-->
+
+      <inertial>
+        <origin xyz="${chassisLength/2} 0 0" rpy="0 ${PI/2} 0"/>
+        <mass value="${chassisMass}"/>
+        <box_inertia m="${chassisMass}" h="${chassisLength/2}" w="${chassisWidth/2}" d="${chassisHeight/2}" />
+<!--        <cylinder_inertia m="${chassisMass}" r="${chassisWidth/2}" h="${chassisLength}"/>-->
+      </inertial>
+    </link>
+
+
+
+
+
+
+
+
+    <link name="front_left_wheel">      
+      <inertial>
+        <origin rpy="${PI/2} 0 0" xyz="0 0 0"/>
+        <mass value="${wheelMass}"/>        
+        <cylinder_inertia m="${wheelMass}" r="${wheelRadius}" h="${wheelWidth}"/>
+      </inertial>
+      <collision name="collision">
+        <origin rpy="${PI/2} 0 0" xyz="0 0 0"/>
+        <geometry>
+          <cylinder length="0.05588" radius="${wheelRadius/2}"/>
+        </geometry>
+      </collision>
+      <visual name="tire_visual">
+        <origin rpy="${PI/2} 0 0" xyz="-0.24 0.334 0.02"/>
+        <geometry>
+          <mesh filename="package://rover_description/meshes/ErleRover_wheel4.STL" scale="0.0014 0.0014 0.0014"/>
+        </geometry>
+        <material name="TireBlack">
+            <color rgba="0.29 .29 .29 1.0"/>
+        </material>
+      </visual>
+    </link>
+
+    <link name="front_right_wheel">
+      <inertial>
+          <mass value="${wheelMass}"/>
+          <origin rpy="${-PI/2} 0 0" xyz="0 0 0"/>
+          <cylinder_inertia m="${wheelMass}" r="${wheelRadius}" h="${wheelWidth}"/>
+      </inertial>
+      <collision name="collision">
+        <origin rpy="${-PI/2} 0 0" xyz="0 0 0"/>
+        <geometry>
+          <cylinder length="0.05588" radius="${wheelRadius/2}"/>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <origin rpy="${-PI/2} 0 0" xyz="0.25 -0.334 -0.02"/>
+        <geometry>
+          <mesh filename="package://rover_description/meshes/ErleRover_wheel2.STL" scale="0.0014 0.0014 0.0014"/>
+        </geometry>
+        <material name="TireBlack">
+            <color rgba="0.29 .29 .29 1.0"/>
+        </material>
+      </visual>
+    </link>
+
+    <link name="rear_left_wheel">
+      <inertial>
+          <mass value="${wheelMass}"/>
+          <origin rpy="0 0 0" xyz="0 0 0"/>
+          <cylinder_inertia m="${wheelMass}" r="${wheelRadius}" h="${wheelWidth}"/>
+      </inertial>
+      <collision name="collision">
+        <origin rpy="${PI/2} 0 0" xyz="0 0 0"/>
+        <geometry>
+          <cylinder length="0.05588" radius="${wheelRadius/2}"/>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <origin rpy="${-PI/2} 0 0" xyz=" 0.25 -0.666 -0.02"/>
+        <geometry>
+          <mesh filename="package://rover_description/meshes/ErleRover_wheel3.STL" scale="0.0014 0.0014 0.0014"/>
+        </geometry>
+        <material name="TireBlack">
+            <color rgba="0.29 .29 .29 1.0"/>
+        </material>
+      </visual>
+    </link>
+
+    <link name="rear_right_wheel">
+      <inertial>
+          <mass value="${wheelMass}"/>
+          <origin rpy="0 0 0" xyz="0 0 0"/>
+          <cylinder_inertia m="${wheelMass}" r="${wheelRadius}" h="${wheelWidth}"/>
+      </inertial>
+      <collision name="collision">
+        <origin rpy="${PI/2} 0 0" xyz="0 0 0"/>
+        <geometry>
+          <cylinder length="0.05588" radius="${wheelRadius/2}"/>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <origin rpy="${PI/2} 0 0" xyz="0.25 0.666 0.02"/>
+        <geometry>
+          <mesh filename="package://rover_description/meshes/ErleRover_wheel1.STL" scale="0.0014 0.0014 0.0014"/>
+        </geometry>
+        <material name="TireBlack">
+            <color rgba="0.29 .29 .29 1.0"/>
+        </material>
+      </visual>
+    </link>
+
+
+
+
+    <!-- ********* WHEELS ********* -->
+    <!-- LEFT WHEEL -->
+
+<!--    <wheel prefix="left"  tY="1"   tX="0" />
+    <wheel prefix="right" tY="-1"  tX="0" />-->
+
+<!--
+    <caster prefix="front_left"  tY="0.63"   tX=" ${chassisWidth/2-0.15}" />
+    <caster prefix="rear_left"   tY="0.63"   tX="-${chassisWidth/2-0.15}" />
+    <caster prefix="front_right" tY="-0.63"  tX=" ${chassisWidth/2-0.15}" />
+    <caster prefix="rear_right"  tY="-0.63"  tX="-${chassisWidth/2-0.15}" />
+    -->
+    <gazebo reference="base_link">
+        <material>Gazebo/LightBlackish</material>
+    </gazebo>
+
+    <gazebo reference="base_link">
+      <mu1 value="${mu1r}"/>
+      <mu2 value="${mu2r}"/>
+      <!--<fdir1>1 0 0</fdir1>
+      <kp value="${kpr}"/>
+      <kd value="${kdr}"/>
+      <material>Gazebo/TireBlack</material>-->
+    </gazebo>
+
+    <gazebo reference="rear_left_wheel">
+      <mu1 value="${mu1r}"/>
+      <mu2 value="${mu2r}"/>
+      <fdir1>1 0 0</fdir1>
+      <kp value="${kpr}"/>
+      <kd value="${kdr}"/>
+      <material>Gazebo/TireBlack</material>
+    </gazebo>
+
+    <gazebo reference="rear_right_wheel">
+      <mu1 value="${mu1r}"/>
+      <mu2 value="${mu2r}"/>
+      <fdir1>1 0 0</fdir1>
+      <kp value="${kpr}"/>
+      <kd value="${kdr}"/>
+      <material>Gazebo/TireBlack</material>
+    </gazebo>
+
+    <gazebo reference="front_left_wheel">
+      <mu1 value="${mu1f}"/>
+      <mu2 value="${mu2f}"/>
+      <fdir1>1 0 0</fdir1>
+      <kp value="${kpf}"/>
+      <kd value="${kdf}"/>
+      <material>Gazebo/TireBlack</material>
+    </gazebo>
+
+    <gazebo reference="front_right_wheel">
+      <mu1 value="${mu1f}"/>
+      <mu2 value="${mu2f}"/>
+      <fdir1>1 0 0</fdir1>
+      <kp value="${kpf}"/>
+      <kd value="${kdf}"/>
+      <material>Gazebo/Orange</material>
+    </gazebo>
+
+
+    <link name="front_right_wheel_steering_block">
+      <visual>
+          <origin rpy="${PI/2} 0 0" xyz="0 -0.025 0"/>
+          <geometry>
+            <cylinder length="0.05" radius="0.005"/>
+          </geometry>
+          <material name="TireBlack"/>
+      </visual>
+      <inertial>
+        <mass value="${steeringMass}"/>
+        <origin rpy="${PI/2} 0 0" xyz="0 -0.025 0"/>
+        <cylinder_inertia m="${steeringMass}" r="0.05" h="0.005"/>
+      </inertial>
+      <collision name="collision">
+        <origin rpy="${PI/2} 0 0" xyz="0 -0.025 0"/>
+        <geometry>
+          <cylinder length="0.05" radius="0.005"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="front_left_wheel_steering_block">
+      <visual>
+        <origin rpy="${PI/2} 0 0" xyz="0 0.025 0"/>
+        <geometry>
+          <cylinder length="0.05" radius="0.005"/>
+        </geometry>
+        <material name="TireBlack"/>
+      </visual>
+      <inertial>
+        <mass value="${steeringMass}"/>
+        <origin rpy="${PI/2} 0 0" xyz="0 0.025 0"/>
+        <cylinder_inertia m="${steeringMass}" r="0.05" h="0.005"/>
+      </inertial>
+      <collision name="collision">
+        <origin rpy="${PI/2} 0 0" xyz="0 0.025 0"/>
+        <geometry>
+          <cylinder length="0.05" radius="0.005"/>
+        </geometry>
+      </collision>
+    </link>
+
+
+    <joint name="front_left_steering_joint" type="revolute">
+      <parent link="base_link"/>
+      <child link="front_left_wheel_steering_block"/>
+      <origin rpy="0 0 0" xyz="0.390444 0.1 ${wheelJointHeight}"/>
+      <axis xyz="0  0  1"/>
+<!--      <limit effort="0.0" lower="-0.9" upper="0.9" velocity="0.0"/>-->
+      <limit effort="${steering_effort}" lower="-0.9" upper="0.9" velocity="10.0"/>
+<!--      <dynamics damping="0.0" friction="5.0"/>-->
+    </joint>
+
+    <joint name="front_right_steering_joint" type="revolute">
+      <parent link="base_link"/>
+      <child link="front_right_wheel_steering_block"/>
+      <origin rpy="0 0 0" xyz="0.390444 -0.1 ${wheelJointHeight}"/>
+      <axis xyz="0  0  1"/>
+<!--      <limit effort="0.0" lower="-0.9" upper="0.9" velocity="0.0"/>-->
+      <limit effort="${steering_effort}" lower="-0.9" upper="0.9" velocity="10.0"/>
+<!--      <dynamics damping="0.0" friction="5.0"/>-->
+    </joint>
+
+    <joint name="front_left_wheel_joint" type="continuous">
+      <parent link="front_left_wheel_steering_block"/>
+      <child link="front_left_wheel"/>
+      <origin rpy="0 0 0" xyz="0 0.043124 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="1e7" velocity="1000"/>
+    </joint>
+
+    <joint name="front_right_wheel_joint" type="continuous">
+      <parent link="front_right_wheel_steering_block"/>
+      <child link="front_right_wheel"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.043124 0.0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="1e7" velocity="1000"/>
+    </joint>
+
+    <joint name="rear_left_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="rear_left_wheel"/>
+      <origin rpy="0 0 0" xyz="0 0.15 ${wheelJointHeight}"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="1e7" velocity="1000"/>
+    </joint>
+
+    <joint name="rear_right_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="rear_right_wheel"/>
+      <origin rpy="0 0 0" xyz="0 -0.15 ${wheelJointHeight}"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="1e7" velocity="1000"/>
+    </joint>
+
+
+
+
+
+
+
+
+<!--
+    <transmission name="rear_left_wheel_trans" type="SimpleTransmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="rear_left_wheel_joint">
+        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="rear_left_wheel_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+
+    <transmission name="rear_right_wheel_trans" type="SimpleTransmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="rear_right_wheel_joint">
+        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="rear_right_wheel_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+
+
+    <transmission name="front_left_steering_trans" type="SimpleTransmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="front_left_steering_joint">
+        <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="front_left_steering_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+
+    <transmission name="$front_right_steering_trans" type="SimpleTransmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="front_right_steering_joint">
+        <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="front_left_steering_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--<transmission name="front_left_wheel_trans" type="SimpleTransmission">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="front_left_wheel_joint">
+    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="front_left_wheel_motor">
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+
+<transmission name="front_right_wheel_trans" type="SimpleTransmission">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="front_right_wheel_joint">
+    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="front_right_wheel_motor">
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>-->
+
+
+
+
+
+</robot>
+
+<!--TODO: mesurer dimension correct au niveau des positions des joints de braquage de direction-->

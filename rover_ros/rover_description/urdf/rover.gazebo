@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- ROS plugin control -->
+<!--<gazebo>
+  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+    <robotNamespace>/</robotNamespace>
+    <legacyModeNS>true</legacyModeNS>
+     <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+  </plugin>
+</gazebo>-->
+
+<!-- SENSORS -->
+<!-- FIXME : may have to be modified copied, values are for a bigger robot and more expensive imu than a MEMS-->
+<!-- IMU -->
+<gazebo>
+  <plugin name="imu_plugin" filename="libgazebo_ros_imu.so">
+    <alwaysOn>true</alwaysOn>
+    <bodyName>imu_link</bodyName>
+    <frameName>imu_link</frameName>
+    <topicName>imu_data</topicName>
+    <serviceName>imu_service</serviceName>
+    <updateRate>50.0</updateRate> 
+    <accelDrift>0.001 0.001 0.001</accelDrift>
+        <accelDriftFrequency>0.001 0.001 0.001</accelDriftFrequency>
+        <accelGaussianNoise>0.0002 0.0002 0.0002</accelGaussianNoise>
+        <rateDrift>0.005 0.005 0.005</rateDrift>
+        <rateDriftFrequency>0.001 0.001 0.001</rateDriftFrequency>
+        <rateGaussianNoise>0.0001 0.0001 0.0001</rateGaussianNoise>
+        <headingDrift>0.0001</headingDrift>
+        <headingDriftFrequency>0.00001</headingDriftFrequency>
+        <headingGaussianNoise>0.00001</headingGaussianNoise>
+        <gaussianNoise>0.000001</gaussianNoise>
+   </plugin>
+</gazebo>
+
+<!--Camera-->
+<gazebo reference="raspicam">
+	<sensor type="camera" name="camera1">
+	<visualize>false</visualize>
+	<update_rate>30.0</update_rate>
+	<camera name="raspi_camera">
+	  <horizontal_fov>1.086</horizontal_fov>
+	  <image>
+	    <width>640</width>
+	    <height>480</height>
+	    <format>R8G8B8</format>
+	  </image>
+	  <clip>
+	    <near>0.02</near>
+	    <far>300</far>
+	  </clip>
+	</camera>
+
+	<plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+	  <alwaysOn>true</alwaysOn>
+	  <updateRate>0.0</updateRate>
+	  <cameraName>raspicam</cameraName>
+	  <imageTopicName>/raspicam/image/compressed</imageTopicName>
+	  <cameraInfoTopicName>/raspicam_node/camera_info</cameraInfoTopicName>
+	  <frameName>"camera"</frameName>
+	  <hackBaseline>0.07</hackBaseline>
+	  <distortionK1>0.0</distortionK1>
+	  <distortionK2>0.0</distortionK2>
+	  <distortionK3>0.0</distortionK3>
+	  <distortionT1>0.0</distortionT1>
+	  <distortionT2>0.0</distortionT2>
+	</plugin>
+	</sensor>
+</gazebo> 
+
+<gazebo>
+      <plugin name="ackermann_drive_controller" filename="libno-wheel-sliding_gazebo_ros_acker_drive.so">
+        <updateRateCommands>25</updateRateCommands>                                   <!-- internal rate of commands application: it is recommanded that it matches the rate of the incomming command msg  -->
+        <updateRateMeasurements>40</updateRateMeasurements>                           <!-- publication rate of wheel speed stamped measurements  (Hz)-->
+        <commandTimeOut>1.5</commandTimeOut>                                          <!-- if the commands stop coming after this duration (seconds), the model should stopped by itself -->
+        <leftRollingFrontJoint>front_left_wheel_joint</leftRollingFrontJoint>         <!-- joints around which the wheel rotate -->
+        <rightRollingFrontJoint>front_right_wheel_joint</rightRollingFrontJoint>      <!-- joints around which the wheel rotate -->
+        <leftRollingRearJoint>rear_left_wheel_joint</leftRollingRearJoint>            <!-- joints around which the wheel rotate -->
+        <rightRollingRearJoint>rear_right_wheel_joint</rightRollingRearJoint>         <!-- joints around which the wheel rotate -->
+        <leftSteeringJoint>front_left_steering_joint</leftSteeringJoint>              <!-- steering joint as define in the urdf/xacro/sdf file (string) -->
+        <rightSteeringJoint>front_right_steering_joint</rightSteeringJoint>           <!-- steering joint as define in the urdf/xacro/sdf file (string) -->
+        <commandTopic>cmd_vel</commandTopic>                                          <!-- topic name of velocity commands -->
+        <robotBaseFrame>base_link</robotBaseFrame>                                    <!-- TF frame name of the robot base -->
+        <publishWheelTF>false</publishWheelTF>                                        <!-- publish or not the TF transform of the wheel relative to the base (not recommended, rather go with joint_state)-->
+        <publishWheelJointState>true</publishWheelJointState>                         <!-- publish a topic joint_state (recommended) -->
+        <publishPerfectOdometry>true</publishPerfectOdometry>                         <!-- a cheat topic with perfect odom can be published -->
+        <publishOdometryTF>false</publishOdometryTF>                                  <!-- publish or not the TF transform between fixed frame and robot base (dont do that if you do data fusion with IMU or GPS in another package such as robot_localization ) -->
+        <odometryFrame>odom</odometryFrame>                                           <!-- TF frame name (!= topic name) of the fixed frame -->
+        <useWheelAccelerations>true</useWheelAccelerations>                           <!-- wheel accelerations simulated or not -->
+        <wheelAxisSeparation>0.390444</wheelAxisSeparation>                           <!-- distance between the front wheel axis and rear wheel axis -->
+        <wheelRadius>0.07</wheelRadius>                                                <!-- radius of your wheel -->
+        <wheelMotorAcceleration>1.0</wheelMotorAcceleration>                          <!-- value of acceleration (if they are used) -->
+        <wheelMotorDecceleration>10.0</wheelMotorDecceleration>                       <!-- value of decceleration (if they are used), also known as braking -->
+        <wheelTorque>20</wheelTorque>                                                 <!-- value of wheel torque : if no friction between wheel and ground (as recommended), then this tag doesnt matter -->
+        <wheelMotorMaxSpeed>2</wheelMotorMaxSpeed>                                    <!-- max speed of each wheel m/s -->
+        <wheelNoiseCmdSigma>0.01</wheelNoiseCmdSigma>                                 <!-- standard deviation of the cmd noise at 1 m/s (progressive from 0 to 1 up to this value) , its also the max sigma as it stops progressing after speed > 1m/s  -->
+        <wheelNoiseMeasurementSigma>0.01</wheelNoiseMeasurementSigma>                 <!-- standard deviation of the measurement noise at 1 m/s (progressive from 0 to 1 up to this value) , its also the max sigma as it stops progressing after speed > 1m/s -->
+        <steeringNoiseCmdSigma>0.0</steeringNoiseCmdSigma>                            <!-- stddev (rad) of the steering angle cmd ex 0.017 = 1 degre -->
+        <steeringNoiseMeasurementSigma>0.001</steeringNoiseMeasurementSigma>            <!-- stddev (rad) of the steering angle measurement -->
+        <maxSteeringAngleRad>0.9</maxSteeringAngleRad>                                <!-- max steering angle assumed to be the same on each side  (radian not degrees pls) -->
+        <steeringSpeed>2</steeringSpeed>                                              <!-- speed of rotation of the steering mecanism -->
+        <frontTrackWidth>0.286248</frontTrackWidth>                                   <!-- distance between front steering joints -->
+        <rearTrackWidth>0.3</rearTrackWidth>                                          <!-- distance between the rear wheel left and the rear wheel right -->
+        <wheelToSteeringDistance>0.043124</wheelToSteeringDistance>                   <!-- distance between the steering joint and the wheel (same usually) -->
+        <alpha1>0.2</alpha1>
+        <alpha2>0.5</alpha2>
+        <alpha3>0.2</alpha3>
+        <alpha4>0.5</alpha4>
+        <!-- PIDs gains on the 6 axis -->
+        <PGainVx>100</PGainVx>
+        <IGainVx>750</IGainVx>
+        <DGainVx>0</DGainVx>
+        <PGainVy>100</PGainVy>
+        <IGainVy>625</IGainVy>
+        <DGainVy>0</DGainVy>
+        <PGainVz>10</PGainVz>
+        <IGainVz>0</IGainVz>
+        <DGainVz>0</DGainVz>
+        <PGainWx>10</PGainWx>
+        <IGainWx>0</IGainWx>
+        <DGainWx>0</DGainWx>
+        <PGainWy>10</PGainWy>
+        <IGainWy>0</IGainWy>
+        <DGainWy>0</DGainWy>
+        <PGainWz>50</PGainWz>
+        <IGainWz>250</IGainWz>
+        <DGainWz>0</DGainWz>
+        <publishCommandError>true</publishCommandError>  <!-- Publish command error (difference between command sent to Gazebo andtrue speed in gazebo) can be usefull in order to tune the PID gains -->
+      </plugin>
+</gazebo>
+
+<gazebo>
+    <plugin name="range_bearing_sensor_plugin" filename="librange-bearing-sensor_gazebo_ros.so">
+        <landmarkPrefix>unit_cylinder_clone</landmarkPrefix>
+        <coneMaxAngle>1</coneMaxAngle>
+        <coneMinAngle>-1</coneMinAngle>
+        <updateRate>1</updateRate>
+        <topicName>range_bearing_observations</topicName>
+        <sensorFrame>base_link</sensorFrame>
+        <sigmaDecameter>0.15</sigmaDecameter>
+        <sigmaAngle>0.017</sigmaAngle>
+    </plugin>
+</gazebo>
+</robot>
